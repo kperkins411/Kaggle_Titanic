@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/Kaggle_Titanic.iml" filepath="$PROJECT_DIR$/.idea/Kaggle_Titanic.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../opencv_objectdetection/.idea/opencv_objectdetection.iml" filepath="$PROJECT_DIR$/../opencv_objectdetection/.idea/opencv_objectdetection.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../opencv_testing/.idea/opencv_testing.iml" filepath="$PROJECT_DIR$/../opencv_testing/.idea/opencv_testing.iml" />
+    </modules>
+  </component>
+</project>
