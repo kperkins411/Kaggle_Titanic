@@ -1,25 +1,25 @@
-# This script shows you how to make a submission using a few
-# useful Python libraries.
-# It gets a public leaderboard score of 0.76077.
-# Maybe you can tweak it and do better...?
-
+# public leaderboard score of 0.77033.
 import pandas as pd
 import xgboost as xgb
-from sklearn.preprocessing import LabelEncoder
 import numpy as np
-from text_transformers import ComputeNANPriceBasedOnCabinsFirstLetter
 from text_transformers import ComputeNaNCabinsFirstLetter_basedon_Fare
 from text_transformers import GetDummiesCatCols
 from text_transformers import AgeImputer
 
-# Load the data
+# Load  data
 train_df = pd.read_csv('./input/train.csv', header=0)
 test_df = pd.read_csv('./input/test.csv', header=0)
 
-#how many rows?
-print ("number of training rows: " + str(train_df.shape[0]))
-print("number nulls: "+ str(train_df.isnull().sum()))
-# print ("number unique cabins:" + str(train_df.Cabin.unique))
+# get rid of these useless columns
+del train_df['Name']
+del train_df['Ticket']
+
+del test_df['Name']
+del test_df['Ticket']
+
+#>70% of cabins missingso drop cabin column
+# del test_df['Cabin']
+# del train_df['Cabin']
 
 # I think the idea here is that people with recorded cabin numbers
 # are of higher socioeconomic class, and thus more likely to survive. Thanks for the tips, @salvus82 and Daniel Ellis!
@@ -34,38 +34,23 @@ ppl = Pipeline([
         ('onehot_sex', GetDummiesCatCols(cols=['Sex', 'Cabin','Embarked' ]))
         # ('onehot_sex', GetDummiesCatCols(cols=['Sex', 'Embarked' ]))
     ])
+
 # run transform method on all estimators
 train_df = ppl.transform(train_df)
 test_df = ppl.transform(test_df)
 
-# get rid of these useless columns
-del train_df['Name']
-del train_df['Ticket']
-
-del test_df['Name']
-del test_df['Ticket']
-
-#>70% of cabins missingso drop cabin column
-# del test_df['Cabin']
-# del train_df['Cabin']
-
+#how many rows and nulls
 print ("number of training rows: " + str(train_df.shape[0]))
-print("number nulls: "+ str(train_df.isnull().sum()))
+print("number nulls: /n"+ str(train_df.isnull().sum()))
+print ("number of test rows: " + str(test_df.shape[0]))
+print("number nulls: /n"+ str(test_df.isnull().sum()))
 # print ("number unique cabins:" + str(train_df.Cabin.unique))
 
-#have many NaN cabins, lets pull cabin and fare and plot to see relationship
-# import matplotlib.pyplot as plt
-# plt.figure(figsize=(8,6))
-# plt.scatter(train_df['Fare'], train_df['Cabin'])
-# plt.xlabel('index', fontsize=12)
-# plt.ylabel('logerror', fontsize=12)
-# plt.show()
-
-
+# yank out survived for xgboost
 train_y = train_df['Survived']
 del train_df['Survived']
 
-#add so we have same number of features in train and test
+#add so we have same number of features in train and test (yeah kludgey but so what?)
 test_df.insert(15,'Cabin_T',pd.Series(np.zeros(test_df.shape[0])))
 
 # You can experiment with many other options here, using the same .fit() and .predict()
@@ -74,19 +59,19 @@ test_df.insert(15,'Cabin_T',pd.Series(np.zeros(test_df.shape[0])))
 gbm = xgb.XGBClassifier(max_depth=3, n_estimators=3000, learning_rate=0.05).fit(train_df, train_y)
 predictions = gbm.predict(test_df)
 
-
 #lets add the predictions to the test data, this gives us more (but not as accurate data)
 #this is not cheating since I did not use the correct Survived values on my dataset
 #just the ones I predicted
 test_df_trn = test_df
 
+# merge into one giant dataset
 merged = [train_df,test_df_trn]
 train_all = pd.concat(merged)
-print('train_all length'+ str(len(train_all)))
+# print('train_all length:'+ str(len(train_all)))
 
 merged_y = [train_y , pd.Series(predictions)]
 train_all_y = pd.concat(merged_y)
-print('train_all_y length'+ str(len(train_all_y)))
+# print('train_all_y length:'+ str(len(train_all_y)))
 
 # run it through XGBoost again
 gbm = xgb.XGBClassifier(max_depth=3, n_estimators=3000, learning_rate=0.05).fit(train_all, train_all_y)
